@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>DEMO</title>
+		<script type="text/javascript" src="ichart.1.1.min.js"></script>
+		<link rel="stylesheet" href="demo.css" type="text/css"/>
+		<script type="text/javascript">
+		
+		var labelscount = 5;
+		var content1 = new Array();
+		var content2 = new Array();
+		var contentnum = 21;
+		var labels = new Array();
+					function test1(){
+						var d1=[],d2=[],t;
+						//alert("!!")
+						for(var i=0;i<contentnum;i++){
+							//t = Math.floor(Math.random()*(30+((i%12)*5)))+10;
+							d1.push(content1[i]);
+							
+							//t = Math.floor(t*0.5);
+							//t = t-Math.floor((Math.random()*t)/2);
+							d2.push(content2[i]);
+							
+						}
+						//var labels = ["10:00","10:01","10:02","10:03","10:04","10:05","10:06","10:07","10:08","10:09","10:10"];
+						var data = [
+						         	{
+						         		name : '数据A',
+						         		value:d1,
+						         		color:'#505050',
+						         		line_width:2
+						         	},
+						         	{
+						         		name : '数据B',
+						         		value:d2,
+						         		color:'#ef7707',
+						         		line_width:2
+						         	}
+						         ];
+				         
+						
+						var line = new iChart.LineBasic2D({
+							render : 'canvasDiv',
+							data: data,
+							align:'center',
+							title : '监测数据',
+							subtitle : '两组不同数据的监测',
+							footnote : '数据来源：模拟数据',
+							width : 960,
+							height : 400,
+							tip:{
+								enable:true,
+								shadow:true
+							},
+							legend : {
+								enable : true,
+								row:1,//设置在一行上显示，与column配合使用
+								column : 'max',
+								valign:'top',
+								sign:'bar',
+								background_color:null,//设置透明背景
+								offsetx:-80,//设置x轴偏移，满足位置需要
+								border : true
+							},
+							crosshair:{
+								enable:true,
+								line_color:'#62bce9'
+							},
+							sub_option : {
+								label:false,
+								point_hollow : false
+							},
+							coordinate:{
+								width:840,
+								height:240,
+								axis:{
+									color:'#9f9f9f',
+									width:[0,0,2,2]
+								},
+								grids:{
+									vertical:{
+										way:'share_alike',
+								 		value:contentnum - 1
+									}
+								},
+								scale:[{
+									 position:'left',	
+									 start_scale:0,
+									 end_scale:100,
+									 scale_space:10,
+									 scale_size:2,
+									 scale_color:'#9f9f9f'
+								},{
+									 position:'bottom',	
+									 labels:labels
+								}]
+							}
+						});
+					
+					//开始画图
+					line.draw();
+				}
+				
+				function timer()
+				{
+					$(test1);
+					//setTimeout("timer()",1000);
+				}
+
+				function send() {
+					ws.send("");
+
+					setTimeout("send()",1000);
+				}
+				setTimeout("send()",1000);
+				//timer();
+				//setTimeout("timer()",1000);
+				var ws = new WebSocket('ws://localhost:8000/soc');
+				ws.onmessage = function(event) {
+					var curpos = 0;
+					var temp;
+					var msg = event.data;
+					var i;
+					var modi;
+					//alert(msg.length);
+					for(i = 0;;i ++)
+					{
+						curpos = msg.indexOf('T',curpos);
+						if(curpos == -1)
+						{
+							break;
+						}
+						curpos += 10;
+					}
+					contentnum = i;
+					//alert(i);
+					curpos = 0;
+					modi = Math.floor((contentnum - 1) / labelscount);
+					//alert(modi); 
+					for(i = contentnum-1;i >= 0;i --)
+					{
+						//labels
+						curpos = msg.indexOf('T',curpos);
+						if(curpos == -1)
+						{
+							break;
+						}
+						curpos += 1;
+						var timestr = msg.substr(curpos,8);
+						//alert(timestr);
+						if(i % modi == 0)
+						{
+							labels[i / modi] = timestr;
+							//alert("label["+(i/modi)+"]:"+timestr);
+						}
+						//content1
+						curpos = msg.indexOf('content1',curpos);
+						curpos += 12;
+						temp = msg.indexOf('\"',curpos);
+						var content1str = msg.substr(curpos,temp - curpos);
+						//alert(content1str);
+						content1[i] = parseInt(content1str);
+						//content2
+						curpos = msg.indexOf('content2',curpos);
+						curpos += 12;
+						temp = msg.indexOf('\"',curpos);
+						var content2str = msg.substr(curpos,temp - curpos);
+						//alert(content2str);
+						content2[i] = parseInt(content2str);
+
+
+					}
+					
+					//contentnum = i;
+
+					timer();
+				};
+			</script>
+		</head>
+		<body>
+			<div id='canvasDiv'></div>
+			<div class='ichartjs_info'>
+				<div class='ichartjs_sm'>说明</div>
+				<div class='ichartjs_details'>
+					test1
+				</div>
+				<span class='ichartjs_sm'>备注：</span>
+				<span class='ichartjs_details'>
+					数据均为模拟。
+				</span>
+			</div>
+		</body>
+</html>
+

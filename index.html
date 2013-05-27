@@ -1,0 +1,19 @@
+<html>
+<head>
+<script>
+var ws = new WebSocket('ws://localhost:8000/soc');
+ws.onmessage = function(event) {
+	document.getElementById('message').innerHTML = event.data;
+};
+function send() {
+	ws.send("");
+
+	setTimeout("send()",500);
+}
+	setTimeout("send()",500);
+</script>
+</head>
+<body>
+<p id='message'></p>
+</body>
+</html>
